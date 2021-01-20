@@ -6,12 +6,14 @@ find_package(OpenCV REQUIRED)
 find_package(Torch REQUIRED)
 find_package(cxxopts REQUIRED)
 find_package(glog REQUIRED)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
 
 include_directories(${OpenCV_INCLUDE_DIRS})
 add_executable(SuperResolution src/main.cpp src/Model.cpp src/Model.h)
 target_link_libraries(SuperResolution ${OpenCV_LIBS} ${TORCH_LIBRARIES} cxxopts::cxxopts glog::glog)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/models/G_4x.pth ${CMAKE_BINARY_DIR}/G_4x.pth COPYONLY)
 
 if (MSVC)
     file(GLOB TORCH_DLLS "${TORCH_INSTALL_PREFIX}/lib/*.dll")

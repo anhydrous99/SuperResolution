@@ -13,9 +13,10 @@ class Model {
     torch::jit::script::Module module;
     size_t input_dim;
     size_t output_dim;
+    torch::Device device;
 
 public:
-    explicit Model(const std::filesystem::path &model_path, size_t upscale, size_t output_dims_size);
+    Model(const std::filesystem::path &model_path, size_t upscale, size_t output_dims_size);
 
     cv::Mat run(const cv::Mat &input);
 };
