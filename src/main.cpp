@@ -45,25 +45,36 @@ int main(int argc, char **argv) {
     if (check_input_extensions(input_path.extension())) {
 
     } else {
+        // Initiate the video capture
         cv::VideoCapture capture(input_path.string());
+        // Get the video's format
         int fourcc = static_cast<int>(capture.get(cv::CAP_PROP_FOURCC));
+        // Get the video's frames per seconds
         double fps = capture.get(cv::CAP_PROP_FPS);
+        // Get the capture image dimensions
         cv::Size input_size(static_cast<int>(capture.get(cv::CAP_PROP_FRAME_WIDTH)),
                             static_cast<int>(capture.get(cv::CAP_PROP_FRAME_HEIGHT)));
+        // Calculate the super-sampled image dimensions
         cv::Size output_size(input_size.width * scale, input_size.height * scale);
+        // Initiate the video writer for the super-sampled video
         cv::VideoWriter writer(output_path.string(), fourcc, fps, output_size);
+        // Check if the video capture was opened successfully
         CHECK(capture.isOpened()) << "error opening video stream or file\n";
 
         while (capture.isOpened()) {
             cv::Mat input_frame;
+            // Get frame from camera or video
             capture >> input_frame;
 
+            // Split image into blocks to perform super sampling (per block)
             std::vector<cv::Mat> frame_blocks;
             for (int i = 0; i < input_size.width; i += out_dim_size) {
                 for (int j = 0; j < input_size.height; j += out_dim_size) {
+                    // Get block
                     cv::Mat block = input_frame
                             .rowRange(i, std::min(static_cast<int>(i + out_dim_size),input_frame.rows))
                             .colRange(j, std::min(static_cast<int>(j + out_dim_size), input_frame.cols));
+                    // Run block through super-sampling
                     cv::Mat resized = model.run(block);
                     // TODO: Stitch together blocks
                 }
