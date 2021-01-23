@@ -45,7 +45,7 @@ public:
 
     std::vector<at::Tensor> preprocess(const at::Tensor &input) const;
 
-    at::Tensor postprocess(const std::vector<at::Tensor> &input, const cv::Size &output_size);
+    at::Tensor postprocess(const std::vector<at::Tensor> &input, const cv::Size &output_size) const;
 
     cv::Mat run(const cv::Mat &input);
 };
