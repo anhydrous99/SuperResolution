@@ -21,6 +21,7 @@ class Model {
     size_t input_dim;
     //! The super sampled output dimension size (square).
     size_t output_dim;
+    size_t scale;
     //! The device where to perform the torch operations.
     torch::Device device;
 
@@ -40,11 +41,11 @@ public:
      */
     //cv::Mat run_block(const cv::Mat &input);
 
-    at::Tensor run(const at::Tensor &input);
+    std::vector<at::Tensor> run(const std::vector<at::Tensor> &input);
 
-    at::Tensor preprocess(const at::Tensor &input) const;
+    std::vector<at::Tensor> preprocess(const at::Tensor &input) const;
 
-    static at::Tensor postprocess(const at::Tensor &input, const cv::Size &output_size);
+    at::Tensor postprocess(const std::vector<at::Tensor> &input, const cv::Size &output_size);
 
     cv::Mat run(const cv::Mat &input);
 };
