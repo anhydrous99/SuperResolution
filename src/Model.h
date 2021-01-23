@@ -36,6 +36,14 @@ public:
      * @param input An opencv Mat object to super sample.
      * @return The Super-Sampled image.
      */
+    //cv::Mat run_block(const cv::Mat &input);
+
+    at::Tensor run(const at::Tensor &input);
+
+    at::Tensor preprocess(const at::Tensor &input) const;
+
+    static at::Tensor postprocess(const at::Tensor &input);
+
     cv::Mat run(const cv::Mat &input);
 };
 

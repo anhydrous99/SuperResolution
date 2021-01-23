@@ -75,7 +75,7 @@ int main(int argc, char **argv) {
                             .rowRange(i, std::min(static_cast<int>(i + out_dim_size),input_frame.rows))
                             .colRange(j, std::min(static_cast<int>(j + out_dim_size), input_frame.cols));
                     // Run block through super-sampling
-                    cv::Mat resized = model.run(block);
+                    cv::Mat resized = model.run_block(block);
                     // TODO: Stitch together blocks
                 }
             }
