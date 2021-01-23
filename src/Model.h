@@ -13,6 +13,8 @@
  * Abstracts the libtorch calls and conversions between opencv's Mat and libtorch's Tensors.
  */
 class Model {
+    //! Stops gradient calculation
+    torch::NoGradGuard no_grad;
     //! The torch module that will be used to compute the super resolution.
     torch::jit::script::Module module;
     //! The input dimension size (square)
@@ -42,7 +44,7 @@ public:
 
     at::Tensor preprocess(const at::Tensor &input) const;
 
-    static at::Tensor postprocess(const at::Tensor &input);
+    static at::Tensor postprocess(const at::Tensor &input, const cv::Size &output_size);
 
     cv::Mat run(const cv::Mat &input);
 };

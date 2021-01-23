@@ -31,6 +31,10 @@ int main(int argc, char **argv) {
         std::cout << "Error: Missing input argument\n" << options.help() << std::endl;
         return EXIT_SUCCESS;
     }
+    if (!results.count("output")) {
+        std::cout << "Error: Missing output argumen\n" << options.help() << std::endl;
+        return EXIT_SUCCESS;
+    }
     fs::path model_path = results["model_path"].as<fs::path>();
     fs::path input_path = results["input"].as<fs::path>();
     fs::path output_path = results["output"].as<fs::path>();
@@ -67,18 +71,10 @@ int main(int argc, char **argv) {
             capture >> input_frame;
 
             // Split image into blocks to perform super sampling (per block)
-            std::vector<cv::Mat> frame_blocks;
-            for (int i = 0; i < input_size.width; i += out_dim_size) {
-                for (int j = 0; j < input_size.height; j += out_dim_size) {
-                    // Get block
-                    cv::Mat block = input_frame
-                            .rowRange(i, std::min(static_cast<int>(i + out_dim_size),input_frame.rows))
-                            .colRange(j, std::min(static_cast<int>(j + out_dim_size), input_frame.cols));
-                    // Run block through super-sampling
-                    cv::Mat resized = model.run_block(block);
-                    // TODO: Stitch together blocks
-                }
-            }
+            cv::Mat output_frame = model.run(input_frame);
+
+            // Write frame to video
+            writer << output_frame;
         }
     }
     return EXIT_SUCCESS;
