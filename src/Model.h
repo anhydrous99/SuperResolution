@@ -18,10 +18,10 @@ class Model {
     //! The torch module that will be used to compute the super resolution.
     torch::jit::script::Module module;
     //! The input dimension size (square)
-    size_t input_dim;
+    int64_t input_dim;
     //! The super sampled output dimension size (square).
-    size_t output_dim;
-    size_t scale;
+    int64_t output_dim;
+    int64_t scale;
     //! The device where to perform the torch operations.
     torch::Device device;
 
@@ -30,16 +30,9 @@ public:
      * A constructor
      * @param model_path The path to the torchscript model.
      * @param upscale An integer representing the model's scale.
-     * @param output_dims_size The output side dimension size.
+     * @param output_size The output side dimension size.
      */
-    Model(const std::filesystem::path &model_path, size_t upscale, size_t output_dims_size);
-
-    /**
-     * Performs The Super-Sampling operations
-     * @param input An opencv Mat object to super sample.
-     * @return The Super-Sampled image.
-     */
-    //cv::Mat run_block(const cv::Mat &input);
+    Model(const std::filesystem::path &model_path, int64_t upscale, int64_t output_size);
 
     std::vector<at::Tensor> run(const std::vector<at::Tensor> &input);
 
