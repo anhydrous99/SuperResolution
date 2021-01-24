@@ -86,6 +86,8 @@ int main(int argc, char **argv) {
             writer << output_frame;
             bar.step();
         }
+        capture.release();
+        writer.release();
     }
     return EXIT_SUCCESS;
 }
