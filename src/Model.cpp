@@ -12,7 +12,7 @@
 
 namespace idx = torch::indexing;
 
-Model::Model(const std::filesystem::path &model_path, int64_t upscale, int64_t output_size) : device("cpu") {
+Model::Model(const std::filesystem::path &model_path, int64_t upscale, int64_t output_size, int64_t batch_size) : device("cpu"), batch_size(batch_size) {
     try {
         module = torch::jit::load(model_path.string());
     } catch (const c10::Error &e) {
@@ -81,5 +81,5 @@ cv::Mat Model::run(const cv::Mat &input) {
     std::vector<at::Tensor> blocked_output = run(blocked_input);
     at::Tensor output_t = postprocess(blocked_output, cv::Size(width * scale, height * scale));
     auto *output_ptr = output_t.data_ptr<uint8_t>();
-    return cv::Mat(cv::Size(output_t.size(2), output_t.size(3)), CV_8UC3, output_ptr);
+    return cv::Mat(cv::Size(output_t.size(0), output_t.size(1)), CV_8UC3, output_ptr);
 }

@@ -5,6 +5,7 @@
 #include <glog/logging.h>
 #include <opencv2/videoio.hpp>
 
+#include "ProgressBar.h"
 #include "Model.h"
 #include "utils.h"
 
@@ -55,6 +56,10 @@ int main(int argc, char **argv) {
         int fourcc = static_cast<int>(capture.get(cv::CAP_PROP_FOURCC));
         // Get the video's frames per seconds
         double fps = capture.get(cv::CAP_PROP_FPS);
+        // Get number of frames
+        int n_frames = static_cast<int>(capture.get(cv::CAP_PROP_FRAME_COUNT));
+        // Create progress bar
+        ProgressBar bar(n_frames);
         // Get the capture image dimensions
         cv::Size input_size(static_cast<int>(capture.get(cv::CAP_PROP_FRAME_WIDTH)),
                             static_cast<int>(capture.get(cv::CAP_PROP_FRAME_HEIGHT)));
@@ -70,12 +75,18 @@ int main(int argc, char **argv) {
             // Get frame from camera or video
             capture >> input_frame;
 
+            if (input_frame.empty())
+                break;
+
             // Split image into blocks to perform super sampling (per block)
             cv::Mat output_frame = model.run(input_frame);
 
             // Write frame to video
             writer << output_frame;
+            bar.step();
         }
+        writer.release();
+        capture.release();
     }
     return EXIT_SUCCESS;
 }
