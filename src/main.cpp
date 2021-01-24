@@ -5,6 +5,7 @@
 #include <glog/logging.h>
 #include <opencv2/videoio.hpp>
 
+#include "ProgressBar.h"
 #include "Model.h"
 #include "utils.h"
 
@@ -31,6 +32,10 @@ int main(int argc, char **argv) {
         std::cout << "Error: Missing input argument\n" << options.help() << std::endl;
         return EXIT_SUCCESS;
     }
+    if (!results.count("output")) {
+        std::cout << "Error: Missing output argumen\n" << options.help() << std::endl;
+        return EXIT_SUCCESS;
+    }
     fs::path model_path = results["model_path"].as<fs::path>();
     fs::path input_path = results["input"].as<fs::path>();
     fs::path output_path = results["output"].as<fs::path>();
@@ -45,30 +50,44 @@ int main(int argc, char **argv) {
     if (check_input_extensions(input_path.extension())) {
 
     } else {
+        // Initiate the video capture
         cv::VideoCapture capture(input_path.string());
+        // Get the video's format
         int fourcc = static_cast<int>(capture.get(cv::CAP_PROP_FOURCC));
+        // Get the video's frames per seconds
         double fps = capture.get(cv::CAP_PROP_FPS);
+        // Get number of frames
+        int n_frames = static_cast<int>(capture.get(cv::CAP_PROP_FRAME_COUNT));
+        // Create progress bar
+        ProgressBar bar(n_frames);
+        // Get the capture image dimensions
         cv::Size input_size(static_cast<int>(capture.get(cv::CAP_PROP_FRAME_WIDTH)),
                             static_cast<int>(capture.get(cv::CAP_PROP_FRAME_HEIGHT)));
+        // Calculate the super-sampled image dimensions
         cv::Size output_size(input_size.width * scale, input_size.height * scale);
+        // Initiate the video writer for the super-sampled video
         cv::VideoWriter writer(output_path.string(), fourcc, fps, output_size);
+        // Check if the video capture was opened successfully
         CHECK(capture.isOpened()) << "error opening video stream or file\n";
+        CHECK(writer.isOpened()) << "error opening output video for write\n";
 
         while (capture.isOpened()) {
             cv::Mat input_frame;
+            // Get frame from camera or video
             capture >> input_frame;
 
-            std::vector<cv::Mat> frame_blocks;
-            for (int i = 0; i < input_size.width; i += out_dim_size) {
-                for (int j = 0; j < input_size.height; j += out_dim_size) {
-                    cv::Mat block = input_frame
-                            .rowRange(i, std::min(static_cast<int>(i + out_dim_size),input_frame.rows))
-                            .colRange(j, std::min(static_cast<int>(j + out_dim_size), input_frame.cols));
-                    cv::Mat resized = model.run(block);
-                    // TODO: Stitch together blocks
-                }
-            }
+            if (input_frame.empty())
+                break;
+
+            // Split image into blocks to perform super sampling (per block)
+            cv::Mat output_frame = model.run(input_frame);
+
+            // Write frame to video
+            writer << output_frame;
+            bar.step();
         }
+        capture.release();
+        writer.release();
     }
     return EXIT_SUCCESS;
 }
