@@ -6,7 +6,7 @@
 #include <iostream>
 #include <iomanip>
 
-#if defined(unix) || defined(__unix__) || defined(__unix)
+#if defined(__linux__) || defined(__APPLE__)
 #include <sys/ioctl.h>
 #include <unistd.h>
 
