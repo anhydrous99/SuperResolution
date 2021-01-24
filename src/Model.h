@@ -41,7 +41,7 @@ public:
 
     at::Tensor postprocess(const std::vector<at::Tensor> &input, const cv::Size &output_size) const;
 
-    cv::Mat run(const cv::Mat &input);
+    cv::Mat run(cv::Mat input);
 };
 
 

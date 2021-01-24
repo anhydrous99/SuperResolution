@@ -69,6 +69,7 @@ int main(int argc, char **argv) {
         cv::VideoWriter writer(output_path.string(), fourcc, fps, output_size);
         // Check if the video capture was opened successfully
         CHECK(capture.isOpened()) << "error opening video stream or file\n";
+        CHECK(writer.isOpened()) << "error opening output video for write\n";
 
         while (capture.isOpened()) {
             cv::Mat input_frame;
@@ -85,8 +86,6 @@ int main(int argc, char **argv) {
             writer << output_frame;
             bar.step();
         }
-        writer.release();
-        capture.release();
     }
     return EXIT_SUCCESS;
 }

@@ -6,6 +6,7 @@
 #include "utils.h"
 
 #include <glog/logging.h>
+#include <opencv2/imgproc.hpp>
 #include <algorithm>
 #include <deque>
 
@@ -41,14 +42,14 @@ std::vector<at::Tensor> Model::run(const std::vector<at::Tensor> &input) {
 }
 
 std::vector<at::Tensor> Model::preprocess(const at::Tensor &input) const {
-    int64_t width = input.size(0), height = input.size(1);
+    int64_t height = input.size(0), width = input.size(1);
     std::vector<at::Tensor> output;
-    for (int64_t i = 0; i < width; i += input_dim) {
-        for (int64_t j = 0; j < height; j += input_dim) {
+    for (int64_t i = 0; i < height; i += input_dim) {
+        for (int64_t j = 0; j < width; j += input_dim) {
             at::Tensor block = input.index(
                     {
-                            idx::Slice(i, std::min(i + static_cast<int64_t>(input_dim), width)),
-                            idx::Slice(j, std::min(j + static_cast<int64_t>(input_dim), height))
+                            idx::Slice(i, std::min(i + static_cast<int64_t>(input_dim), height)),
+                            idx::Slice(j, std::min(j + static_cast<int64_t>(input_dim), width))
                     });
             block = block.permute({2, 0, 1}).unsqueeze(0).to(torch::kFloat32).div(255);
             output.push_back(block);
@@ -58,14 +59,14 @@ std::vector<at::Tensor> Model::preprocess(const at::Tensor &input) const {
 }
 
 at::Tensor Model::postprocess(const std::vector<at::Tensor> &input, const cv::Size &output_size) const {
-    at::Tensor unblocked = torch::zeros({output_size.width, output_size.height, 3});
+    at::Tensor unblocked = torch::zeros({output_size.height, output_size.width, 3});
     auto input_itr = input.cbegin();
-    for (int64_t i = 0; i < output_size.width; i += output_dim) {
-        for (int64_t j = 0; j < output_size.height; j += output_dim) {
+    for (int64_t i = 0; i < output_size.height; i += output_dim) {
+        for (int64_t j = 0; j < output_size.width; j += output_dim) {
             unblocked.index_put_(
                     {
-                        idx::Slice(i, std::min(i + static_cast<int64_t>(output_dim), static_cast<int64_t>(output_size.width))),
-                        idx::Slice(j, std::min(j + static_cast<int64_t>(output_dim), static_cast<int64_t>(output_size.height)))
+                        idx::Slice(i, std::min(i + static_cast<int64_t>(output_dim), static_cast<int64_t>(output_size.height))),
+                        idx::Slice(j, std::min(j + static_cast<int64_t>(output_dim), static_cast<int64_t>(output_size.width)))
                         }, (*input_itr).squeeze(0).permute({1, 2, 0}));
             input_itr++;
         }
@@ -74,12 +75,17 @@ at::Tensor Model::postprocess(const std::vector<at::Tensor> &input, const cv::Si
     return unblocked;
 }
 
-cv::Mat Model::run(const cv::Mat &input) {
-    int64_t width = input.rows, height = input.cols;
-    at::Tensor input_t = torch::from_blob(input.data, {width, height, 3});
+cv::Mat Model::run(cv::Mat input) {
+    cv::cvtColor(input, input, cv::COLOR_BGR2RGB);
+    int64_t height = input.rows, width = input.cols;
+    auto options = torch::TensorOptions().dtype(torch::kUInt8);
+    at::Tensor input_t = torch::from_blob(input.data, {height, width, 3}, options);
     std::vector<at::Tensor> blocked_input = preprocess(input_t);
     std::vector<at::Tensor> blocked_output = run(blocked_input);
     at::Tensor output_t = postprocess(blocked_output, cv::Size(width * scale, height * scale));
-    auto *output_ptr = output_t.data_ptr<uint8_t>();
-    return cv::Mat(cv::Size(output_t.size(0), output_t.size(1)), CV_8UC3, output_ptr);
+    cv::Mat output = cv::Mat::ones(output_t.size(0), output_t.size(1), CV_MAKETYPE(cv::DataType<uint8_t>::type, 3));
+    auto* output_t_ptr = output_t.data_ptr<uchar>();
+    std::memcpy(output.data, output_t_ptr,  sizeof(uint8_t)*output_t.numel());
+    cv::cvtColor(output, output, cv::COLOR_RGB2BGR);
+    return output;
 }
