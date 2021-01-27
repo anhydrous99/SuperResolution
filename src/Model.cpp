@@ -1,5 +1,6 @@
 //
 // Created by Armando Herrera on 1/19/21.
+// TODO: Create model with dynamic batch size, this will accelerate super-sampling for large images or videos on CUDA
 //
 
 #include "Model.h"
@@ -33,10 +34,10 @@ Model::Model(const std::filesystem::path &model_path, int64_t upscale, int64_t o
 
 std::vector<at::Tensor> Model::run(const std::vector<at::Tensor> &input) {
     std::vector<at::Tensor> output;
-    for (auto i = input.cbegin(); i < input.cend(); i += prefetch_size) {
+    for (uint64_t i = 0; i < input.size(); i += prefetch_size) {
         std::vector<at::Tensor> device_tensor;
-        for (auto j = i; j < std::min(j + prefetch_size, input.cend()); j++)
-            device_tensor.push_back(j->to(device));
+        for (auto j = i; j < std::min(i + prefetch_size, input.size()); j++)
+            device_tensor.push_back(input[j].to(device));
         for (auto &tensor : device_tensor)
             tensor = module.forward({tensor}).toTensor();
         for (const auto &tensor : device_tensor)

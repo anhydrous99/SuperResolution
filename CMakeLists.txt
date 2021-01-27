@@ -27,9 +27,9 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/models/G_4x.pth ${CMAKE_BINARY_DIR}/G
 
 if (MSVC)
     file(GLOB TORCH_DLLS "${TORCH_INSTALL_PREFIX}/lib/*.dll")
-    add_custom_command(TARGET example-app
+    add_custom_command(TARGET SuperResolution
             POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
             ${TORCH_DLLS}
-            $<TARGET_FILE_DIR:example-app>)
+            $<TARGET_FILE_DIR:SuperResolution>)
 endif (MSVC)

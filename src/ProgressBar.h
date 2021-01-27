@@ -1,6 +1,5 @@
 //
 // Created by constexpr_dog on 1/24/21.
-// TODO: Test on windows
 //
 
 #ifndef SUPERRESOLUTION_PROGRESSBAR_H

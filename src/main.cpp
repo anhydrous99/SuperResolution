@@ -50,7 +50,7 @@ int main(int argc, char **argv) {
     // Import Model
     Model model(model_path, scale, out_dim_size, prefetch);
 
-    if (check_input_extensions(input_path.extension())) {
+    if (check_input_extensions(input_path.extension().string())) {
         cv::Mat input_frame = cv::imread(input_path.string());
         cv::Mat output_frame = model.run(input_frame);
         cv::imwrite(output_path.string(), output_frame);
