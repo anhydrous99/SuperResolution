@@ -4,6 +4,7 @@
 #include <cxxopts.hpp>
 #include <glog/logging.h>
 #include <opencv2/videoio.hpp>
+#include <opencv2/imgcodecs.hpp>
 
 #include "ProgressBar.h"
 #include "Model.h"
@@ -48,7 +49,9 @@ int main(int argc, char **argv) {
     Model model(model_path, scale, out_dim_size);
 
     if (check_input_extensions(input_path.extension())) {
-
+        cv::Mat input_frame = cv::imread(input_path.string());
+        cv::Mat output_frame = model.run(input_frame);
+        cv::imwrite(output_path.string(), output_frame);
     } else {
         // Initiate the video capture
         cv::VideoCapture capture(input_path.string());
