@@ -23,6 +23,7 @@ int main(int argc, char **argv) {
             ("o,output", "The path to the output video or image", cxxopts::value<fs::path>())
             ("side_dim", "The out dimension size for model", cxxopts::value<size_t>()->default_value("128"))
             ("scale", "The upscale factor for model", cxxopts::value<size_t>()->default_value("4"))
+            ("prefetch", "Number of blocks to prefetch", cxxopts::value<size_t>()->default_value("1"))
             ("h,help", "Print Usage");
     auto results = options.parse(argc, argv);
     if (results.count("help")) {
@@ -42,11 +43,12 @@ int main(int argc, char **argv) {
     fs::path output_path = results["output"].as<fs::path>();
     size_t out_dim_size = results["side_dim"].as<size_t>();
     size_t scale = results["scale"].as<size_t>();
+    size_t prefetch = results["prefetch"].as<size_t>();
     CHECK(fs::is_regular_file(model_path)) << "Model is not a regular file or doesn't exist.";
     CHECK(fs::is_regular_file(input_path)) << "Input is not a regular file or doesn't exist.";
 
     // Import Model
-    Model model(model_path, scale, out_dim_size);
+    Model model(model_path, scale, out_dim_size, prefetch);
 
     if (check_input_extensions(input_path.extension())) {
         cv::Mat input_frame = cv::imread(input_path.string());

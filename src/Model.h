@@ -22,7 +22,7 @@ class Model {
     //! The super sampled output dimension size (square).
     int64_t output_dim;
     int64_t scale;
-    int64_t batch_size;
+    int64_t prefetch_size;
     //! The device where to perform the torch operations.
     torch::Device device;
 
@@ -33,7 +33,7 @@ public:
      * @param upscale An integer representing the model's scale.
      * @param output_size The output side dimension size.
      */
-    Model(const std::filesystem::path &model_path, int64_t upscale, int64_t output_size, int64_t batch_size=1);
+    Model(const std::filesystem::path &model_path, int64_t upscale, int64_t output_size, int64_t prefetch_size);
 
     std::vector<at::Tensor> run(const std::vector<at::Tensor> &input);
 

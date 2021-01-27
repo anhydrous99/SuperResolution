@@ -8,12 +8,12 @@
 #include <glog/logging.h>
 #include <opencv2/imgproc.hpp>
 #include <algorithm>
-#include <deque>
 
 
 namespace idx = torch::indexing;
 
-Model::Model(const std::filesystem::path &model_path, int64_t upscale, int64_t output_size, int64_t batch_size) : device("cpu"), batch_size(batch_size) {
+Model::Model(const std::filesystem::path &model_path, int64_t upscale, int64_t output_size, int64_t prefetch_size)
+        : device("cpu"), prefetch_size(prefetch_size) {
     try {
         module = torch::jit::load(model_path.string());
     } catch (const c10::Error &e) {
@@ -32,13 +32,17 @@ Model::Model(const std::filesystem::path &model_path, int64_t upscale, int64_t o
 }
 
 std::vector<at::Tensor> Model::run(const std::vector<at::Tensor> &input) {
-    std::vector<at::Tensor> output_tensors;
-    for (const at::Tensor &tensor : input) {
-        at::Tensor i_tensor = tensor.to(torch::Device(device));
-        at::Tensor o_tensor = module.forward({i_tensor}).toTensor().to(torch::Device("cpu"));
-        output_tensors.push_back(o_tensor);
+    std::vector<at::Tensor> output;
+    for (auto i = input.cbegin(); i < input.cend(); i += prefetch_size) {
+        std::vector<at::Tensor> device_tensor;
+        for (auto j = i; j < std::min(j + prefetch_size, input.cend()); j++)
+            device_tensor.push_back(j->to(device));
+        for (auto &tensor : device_tensor)
+            tensor = module.forward({tensor}).toTensor();
+        for (const auto &tensor : device_tensor)
+            output.push_back(tensor.to(torch::Device("cpu")));
     }
-    return output_tensors;
+    return output;
 }
 
 std::vector<at::Tensor> Model::preprocess(const at::Tensor &input) const {
@@ -65,9 +69,11 @@ at::Tensor Model::postprocess(const std::vector<at::Tensor> &input, const cv::Si
         for (int64_t j = 0; j < output_size.width; j += output_dim) {
             unblocked.index_put_(
                     {
-                        idx::Slice(i, std::min(i + static_cast<int64_t>(output_dim), static_cast<int64_t>(output_size.height))),
-                        idx::Slice(j, std::min(j + static_cast<int64_t>(output_dim), static_cast<int64_t>(output_size.width)))
-                        }, (*input_itr).squeeze(0).permute({1, 2, 0}));
+                            idx::Slice(i, std::min(i + static_cast<int64_t>(output_dim),
+                                                   static_cast<int64_t>(output_size.height))),
+                            idx::Slice(j, std::min(j + static_cast<int64_t>(output_dim),
+                                                   static_cast<int64_t>(output_size.width)))
+                    }, (*input_itr).squeeze(0).permute({1, 2, 0}));
             input_itr++;
         }
     }
@@ -84,8 +90,8 @@ cv::Mat Model::run(cv::Mat input) {
     std::vector<at::Tensor> blocked_output = run(blocked_input);
     at::Tensor output_t = postprocess(blocked_output, cv::Size(width * scale, height * scale));
     cv::Mat output = cv::Mat::ones(output_t.size(0), output_t.size(1), CV_MAKETYPE(cv::DataType<uint8_t>::type, 3));
-    auto* output_t_ptr = output_t.data_ptr<uchar>();
-    std::memcpy(output.data, output_t_ptr,  sizeof(uint8_t)*output_t.numel());
+    auto *output_t_ptr = output_t.data_ptr<uchar>();
+    std::memcpy(output.data, output_t_ptr, sizeof(uint8_t) * output_t.numel());
     cv::cvtColor(output, output, cv::COLOR_RGB2BGR);
     return output;
 }
