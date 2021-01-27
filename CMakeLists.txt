@@ -1,11 +1,21 @@
 cmake_minimum_required(VERSION 3.17)
+
+include("cmake/HunterGate.cmake")
+HunterGate(
+        URL "https://github.com/cpp-pm/hunter/archive/v0.23.291.tar.gz"
+        SHA1 "4f57243b24a02b9c7ec5ea02c09d5c77c6a97cba"
+)
+
 project(SuperResolution)
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+
+hunter_add_package(OpenCV)
+hunter_add_package(cxxopts)
+hunter_add_package(glog)
 
 find_package(OpenCV REQUIRED)
-find_package(Torch REQUIRED)
 find_package(cxxopts REQUIRED)
 find_package(glog REQUIRED)
+find_package(Torch REQUIRED)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
