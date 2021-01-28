@@ -1,6 +1,5 @@
 //
 // Created by Armando Herrera on 1/19/21.
-// TODO: Create model with dynamic batch size, this will accelerate super-sampling for large images or videos on CUDA
 //
 
 #include "Model.h"
@@ -13,8 +12,8 @@
 
 namespace idx = torch::indexing;
 
-Model::Model(const std::filesystem::path &model_path, int64_t upscale, int64_t output_size, int64_t prefetch_size)
-        : device("cpu"), prefetch_size(prefetch_size) {
+Model::Model(const std::filesystem::path &model_path, int64_t upscale, int64_t output_size, int64_t batch_size)
+        : device("cpu"), batch_size(batch_size) {
     try {
         module = torch::jit::load(model_path.string());
     } catch (const c10::Error &e) {
@@ -34,14 +33,30 @@ Model::Model(const std::filesystem::path &model_path, int64_t upscale, int64_t o
 
 std::vector<at::Tensor> Model::run(const std::vector<at::Tensor> &input) {
     std::vector<at::Tensor> output;
-    for (uint64_t i = 0; i < input.size(); i += prefetch_size) {
-        std::vector<at::Tensor> device_tensor;
-        for (auto j = i; j < std::min(i + prefetch_size, static_cast<uint64_t>(input.size())); j++)
-            device_tensor.push_back(input[j].to(device));
-        for (auto &tensor : device_tensor)
-            tensor = module.forward({tensor}).toTensor();
-        for (const auto &tensor : device_tensor)
-            output.push_back(tensor.to(torch::Device("cpu")));
+    output.reserve(input.size());
+    auto initial_sizes = input[0].sizes();
+    for (uint64_t i = 0; i < input.size(); i += batch_size) {
+        std::vector<at::Tensor> tmp_vector;
+        bool same_size = true;
+
+        for (auto j = i; j < std::min(i + batch_size, static_cast<uint64_t>(input.size())); j++) {
+            auto current_sizes = input[j].sizes();
+            if (!std::equal(current_sizes.begin(), current_sizes.end(), initial_sizes.begin()))
+                same_size = false;
+            tmp_vector.push_back(input[j]);
+        }
+
+        if (same_size) {
+            at::Tensor device_tensor = torch::stack(tmp_vector).to(device);
+            device_tensor = module.forward({device_tensor}).toTensor().to(torch::Device("cpu"));
+            auto output_vector = torch::unbind(device_tensor);
+            output.insert(output.end(), output_vector.begin(), output_vector.end());
+        } else {
+            for (auto &tensor : tmp_vector)
+                tensor = module.forward({tensor.unsqueeze(0).to(device)}).toTensor();
+            for (const auto &tensor : tmp_vector)
+                output.push_back(tensor.to(torch::Device("cpu")));
+        }
     }
     return output;
 }
@@ -56,7 +71,7 @@ std::vector<at::Tensor> Model::preprocess(const at::Tensor &input) const {
                             idx::Slice(i, std::min(i + static_cast<int64_t>(input_dim), height)),
                             idx::Slice(j, std::min(j + static_cast<int64_t>(input_dim), width))
                     });
-            block = block.permute({2, 0, 1}).unsqueeze(0).to(torch::kFloat32).div(255);
+            block = block.permute({2, 0, 1}).to(torch::kFloat32).div(255);
             output.push_back(block);
         }
     }
