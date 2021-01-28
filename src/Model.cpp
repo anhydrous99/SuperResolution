@@ -36,7 +36,7 @@ std::vector<at::Tensor> Model::run(const std::vector<at::Tensor> &input) {
     std::vector<at::Tensor> output;
     for (uint64_t i = 0; i < input.size(); i += prefetch_size) {
         std::vector<at::Tensor> device_tensor;
-        for (auto j = i; j < std::min(i + prefetch_size, input.size()); j++)
+        for (auto j = i; j < std::min(i + prefetch_size, static_cast<uint64_t>(input.size())); j++)
             device_tensor.push_back(input[j].to(device));
         for (auto &tensor : device_tensor)
             tensor = module.forward({tensor}).toTensor();
