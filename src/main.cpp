@@ -2,11 +2,11 @@
 #include <algorithm>
 #include <filesystem>
 #include <cxxopts.hpp>
-#include <glog/logging.h>
 #include <opencv2/videoio.hpp>
 #include <opencv2/imgcodecs.hpp>
 
 #include "ProgressBar.h"
+#include "Glog.h"
 #include "Model.h"
 #include "utils.h"
 
@@ -14,7 +14,7 @@ namespace fs = std::filesystem;
 
 
 int main(int argc, char **argv) {
-    google::InitGoogleLogging(argv[0]);
+    Glog glog(argv[0]);
     cxxopts::Options options("SuperResolution", "Uses ESRGAN to interpolate an image");
     options.add_options()
             ("m,model_path", "The path to the TorchScript ESRGAN Model",
@@ -44,13 +44,13 @@ int main(int argc, char **argv) {
     size_t out_dim_size = results["side_dim"].as<size_t>();
     size_t scale = results["scale"].as<size_t>();
     size_t batch_size = results["batch_size"].as<size_t>();
-    CHECK(fs::is_regular_file(model_path)) << "Model is not a regular file or doesn't exist.";
-    CHECK(fs::is_regular_file(input_path)) << "Input is not a regular file or doesn't exist.";
+    glog.Check(fs::is_regular_file(model_path), "Model is not a regular file or doesn't exist.");
+    glog.Check(fs::is_regular_file(input_path), "Input is not a regular file or doesn't exist.");
 
     // Import Model
-    Model model(model_path, scale, out_dim_size, batch_size);
+    Model model(model_path, scale, out_dim_size, batch_size, &glog);
 
-    if (check_input_extensions(input_path.extension().string())) {
+    if (check_input_extensions(input_path.extension().string(), &glog)) {
         cv::Mat input_frame = cv::imread(input_path.string());
         cv::Mat output_frame = model.run(input_frame);
         cv::imwrite(output_path.string(), output_frame);
@@ -73,8 +73,8 @@ int main(int argc, char **argv) {
         // Initiate the video writer for the super-sampled video
         cv::VideoWriter writer(output_path.string(), fourcc, fps, output_size);
         // Check if the video capture was opened successfully
-        CHECK(capture.isOpened()) << "error opening video stream or file\n";
-        CHECK(writer.isOpened()) << "error opening output video for write\n";
+        glog.Check(capture.isOpened(), "error opening video stream or file.\n");
+        glog.Check(writer.isOpened(), "error opening output video to write.\n");
 
         while (capture.isOpened()) {
             cv::Mat input_frame;

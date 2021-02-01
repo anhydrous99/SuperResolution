@@ -5,19 +5,19 @@
 #include "Model.h"
 #include "utils.h"
 
-#include <glog/logging.h>
 #include <opencv2/imgproc.hpp>
 #include <algorithm>
 
 
 namespace idx = torch::indexing;
 
-Model::Model(const std::filesystem::path &model_path, int64_t upscale, int64_t output_size, int64_t batch_size)
-        : device("cpu"), batch_size(batch_size) {
+Model::Model(const std::filesystem::path &model_path, int64_t upscale, int64_t output_size, int64_t batch_size, Glog *glog)
+        : device("cpu"), batch_size(batch_size), glog(glog) {
     try {
         module = torch::jit::load(model_path.string());
     } catch (const c10::Error &e) {
-        LOG(FATAL) << "error loading module\n" << e.msg();
+        if (glog)
+            glog->Log_Fatal("error loading module\n" + e.msg());
     }
     module.eval();
 

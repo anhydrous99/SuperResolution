@@ -8,10 +8,10 @@
 
 class ProgressBar {
     int count, current = 0;
-
-    static int get_term_width();
     void print_progress_bar() const;
+
 public:
+    static int get_term_width();
     explicit ProgressBar(int count);
     void step();
 };
