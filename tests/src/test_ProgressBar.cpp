@@ -18,7 +18,6 @@ namespace {
             CaptureStdout();
             progress_bar = new ProgressBar(GetParam());
             std::string output = GetCapturedStdout();
-            int term_width = ProgressBar::get_term_width();
 
             // Always print these three character regardless of terminal size
             ASSERT_EQ(*output.begin(), '[');
@@ -32,7 +31,6 @@ namespace {
         }
 
         ~ProgressBarTest() override { delete progress_bar; }
-
         ProgressBar *progress_bar{nullptr};
     };
 
@@ -42,10 +40,6 @@ namespace {
             progress_bar->step();
         std::string output = GetCapturedStdout();
         ASSERT_EQ(output.size(), GetParam()*8);
-    }
-
-    TEST_P(ProgressBarTest, MovementSteps) { // NOLINT
-        // TODO
     }
 
     INSTANTIATE_TEST_SUITE_P(MultipleCounts, ProgressBarTest, Values(0, 1, 3, 10, 100)); // NOLINT

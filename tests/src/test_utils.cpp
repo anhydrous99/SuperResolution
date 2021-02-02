@@ -31,7 +31,6 @@ namespace {
     }
 
     TEST_F(UtilsTest, check_input_extensions_invalid) { // NOLINT
-        //ASSERT_ANY_THROW(check_input_extensions("asdf", reinterpret_cast<Glog *>(&glog)));
         EXPECT_CALL(glog, Check(true, "Input file extension is not supported\n")).Times(1);
         check_input_extensions("asdf", reinterpret_cast<Glog *>(&glog));
     }
