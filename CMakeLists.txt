@@ -45,6 +45,11 @@ target_link_libraries(SuperResolution ${TO_LINK})
 # Copy model to source directory
 configure_file(${CMAKE_SOURCE_DIR}/models/G_4x.pth ${CMAKE_BINARY_DIR}/G_4x.pth COPYONLY)
 
+# To suppress visibility warnings on apple systems
+if (APPLE)
+    set_target_properties(SuperResolution PROPERTIES CXX_VISIBILITY_PRESET hidden)
+endif (APPLE)
+
 # Required on windows
 if (MSVC)
     file(GLOB TORCH_DLLS "${TORCH_INSTALL_PREFIX}/lib/*.dll")
