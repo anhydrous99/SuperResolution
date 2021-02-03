@@ -3,6 +3,7 @@
 // Tests of the Model class
 //
 
+#include <algorithm>
 #include <gtest/gtest.h>
 #include <opencv2/imgcodecs.hpp>
 #include "mock_Glog.h"
@@ -92,8 +93,8 @@ namespace {
                 ASSERT_EQ(3, output[0].ndimension());
                 ASSERT_EQ(output[0].dtype(), torch::kFloat32);
                 ASSERT_EQ(output[0].sizes().front(), 3);
-                ASSERT_EQ(std::min(128ll, height * 4), output[0].size(1));
-                ASSERT_EQ(std::min(128ll, width * 4), output[0].size(2));
+                ASSERT_EQ(std::min(128ll, height * 4ll), output[0].size(1));
+                ASSERT_EQ(std::min(128ll, width * 4ll), output[0].size(2));
             }
         }
     }
