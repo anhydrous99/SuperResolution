@@ -12,3 +12,5 @@ target_include_directories(tests PUBLIC ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME check COMMAND tests)
 # Copy model to source directory
 configure_file(${CMAKE_SOURCE_DIR}/models/G_4x.pth ${CMAKE_CURRENT_BINARY_DIR}/G_4x.pth COPYONLY)
+configure_file(${CMAKE_SOURCE_DIR}/images/lr.jpg ${CMAKE_CURRENT_BINARY_DIR}/lr.jpg COPYONLY)
+configure_file(${CMAKE_SOURCE_DIR}/images/sr_ESRGAN.jpg ${CMAKE_CURRENT_BINARY_DIR}/sr_ESRGAN.jpg COPYONLY)

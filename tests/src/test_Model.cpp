@@ -4,6 +4,7 @@
 //
 
 #include <gtest/gtest.h>
+#include <opencv2/imgcodecs.hpp>
 #include "mock_Glog.h"
 #include "Model.h"
 
@@ -98,7 +99,28 @@ namespace {
     }
 
     TEST_P(ModelTest, RunMat) { // NOLINT
-        // TODO
+        for (int64_t height : sides) {
+            for (int64_t width : sides) {
+                cv::Mat input_image = cv::Mat::zeros(cv::Size(width, height), CV_8UC3);
+                cv::Mat output_image = model->run(input_image);
+                ASSERT_EQ(output_image.cols, width * 4);
+                ASSERT_EQ(output_image.rows, height * 4);
+            }
+        }
+    }
+
+    TEST_P(ModelTest, RealImage) { // NOLINT
+        cv::Mat input_img = cv::imread("lr.jpg");
+        cv::Mat cmp_img = cv::imread("sr_ESRGAN.jpg");
+
+        cv::Mat output_img = model->run(input_img);
+
+        for (int i = 0; i < output_img.rows; i++) {
+            const uchar* oi = output_img.ptr<uchar>(i);
+            const uchar* ci = cmp_img.ptr<uchar>(i);
+            for (int j = 0; j < output_img.cols; j++)
+                ASSERT_EQ(oi[j], ci[j]);
+        }
     }
 
     INSTANTIATE_TEST_SUITE_P(MultipleBatchSize, ModelTest, Values(1, 2, 4)); // NOLINT
