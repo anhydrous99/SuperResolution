@@ -27,7 +27,7 @@ namespace {
         ~ModelTest() override { delete model; }
 
         Model *model{nullptr};
-        std::vector<int64_t> sides{16, 32, 177, 256, 533};
+        std::vector<int64_t> sides{16, 32, 177, 256};
     };
 
 
@@ -73,12 +73,33 @@ namespace {
     }
 
     TEST_P(ModelTest, RunVector) { // NOLINT
-        // TODO
+        for (int64_t height : sides) {
+            for (int64_t width : sides) {
+                std::vector<at::Tensor> rand_tensors;
+                int64_t height_blocks = std::ceil(static_cast<float>(height) / 32.f);
+                int64_t width_blocks = std::ceil(static_cast<float>(width) / 32.f);
+                for (int64_t i = 0; i < height_blocks; i++) {
+                    for (int64_t j = 0; j < width_blocks; j++) {
+                        rand_tensors.push_back(torch::rand({
+                                                                   3,
+                                                                   (i != height_blocks - 1) ? 32ll : height - (i) * 32,
+                                                                   (j != width_blocks - 1) ? 32ll : width - (j) * 32
+                                                           }));
+                    }
+                }
+                auto output = model->run(rand_tensors);
+                ASSERT_EQ(3, output[0].ndimension());
+                ASSERT_EQ(output[0].dtype(), torch::kFloat32);
+                ASSERT_EQ(output[0].sizes().front(), 3);
+                ASSERT_EQ(std::min(128ll, height * 4), output[0].size(1));
+                ASSERT_EQ(std::min(128ll, width * 4), output[0].size(2));
+            }
+        }
     }
 
     TEST_P(ModelTest, RunMat) { // NOLINT
         // TODO
     }
 
-    INSTANTIATE_TEST_SUITE_P(MultipleBatchSize, ModelTest, Values(1, 2, 4, 8)); // NOLINT
+    INSTANTIATE_TEST_SUITE_P(MultipleBatchSize, ModelTest, Values(1, 2, 4)); // NOLINT
 }
