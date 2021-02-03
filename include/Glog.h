@@ -12,6 +12,7 @@ public:
 
     virtual void Log_Fatal(const std::string &message) = 0;
     virtual void Check(bool condition, const std::string &message) = 0;
+    virtual ~IGlog() = default;
 };
 
 class Glog : public IGlog {

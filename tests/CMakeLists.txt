@@ -7,7 +7,7 @@ find_package(GTest CONFIG REQUIRED)
 list(REMOVE_AT SOURCES 0)
 
 add_executable(tests src/tests.cpp src/test_Model.cpp src/test_ProgressBar.cpp src/test_utils.cpp src/mock_Glog.h ${SOURCES})
-target_link_libraries(tests GTest::gmock_main ${TO_LINK})
+target_link_libraries(tests GTest::gtest_main GTest::gmock_main ${TO_LINK})
 target_include_directories(tests PUBLIC ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME check COMMAND tests)
 # Copy model to source directory
