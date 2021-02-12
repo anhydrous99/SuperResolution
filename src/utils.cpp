@@ -13,8 +13,8 @@ bool check_input_extensions(std::string extension, Glog *glog) {
             ".bpm", ".dib", ".jpeg", ".jpg", ".jpe",
             "jp2", ".png", ".webp", ".tiff", ".tif"
     };
-    std::array<std::string, 2> video_extensions{
-            ".avi", ".mp4"
+    std::array<std::string, 4> video_extensions{
+            ".avi", ".mp4", ".m4v", ".mkv"
     };
     // Convert all characters in extension to lower case
     std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);

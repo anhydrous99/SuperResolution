@@ -56,7 +56,7 @@ All models reside within the models folder. For model suggestions feel free to o
 | FileName  | Target         | Scale |
 |-----------|----------------|-------|
 | G_4x.pth  | General Images | 4x    |
-| A_4x.pth* | Anime          | 4x    |
+| A_4x.pth  | Anime          | 4x    |
 | F_4x.pth* | Faces          | 4x    |
 
 **Planned models*
