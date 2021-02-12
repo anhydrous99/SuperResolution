@@ -9,6 +9,7 @@ static size_t GlogCount = 0;
 
 Glog::Glog(const char * executable_name) {
     if (GlogCount < 1) {
+        // This is only allowed to run once in a program's life
         google::InitGoogleLogging(executable_name);
         GlogCount++;
     } else

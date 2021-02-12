@@ -12,6 +12,7 @@
 /**
  * Checks whether an extension is supported and whether it is a video or image extension.
  * @param extension
+ * @param A glog object pointer used for error reporting and tracing
  * @return A boolean where true is an image and false is a video
  */
 bool check_input_extensions(std::string extension, Glog* glog);

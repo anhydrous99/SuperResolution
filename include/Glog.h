@@ -7,6 +7,9 @@
 
 #include <string>
 
+/**
+ * An interface for the Glog wrapper, used to Mock the Glog class
+ */
 class IGlog {
 public:
 
@@ -15,6 +18,9 @@ public:
     virtual ~IGlog() = default;
 };
 
+/**
+ * A thin glog wrapper for error reporting and tracing
+ */
 class Glog : public IGlog {
 public:
     explicit Glog(const char * executable_name);

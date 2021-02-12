@@ -15,9 +15,13 @@ bool check_input_extensions(std::string extension, Glog *glog) {
     std::array<std::string, 2> video_extensions{
             ".avi", ".mp4"
     };
+    // Convert all characters in extension to lower case
     std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
+    // Check if the extension is that of an image
     bool is_img_ext = std::find(image_extensions.begin(), image_extensions.end(), extension) != image_extensions.end();
+    // Check if the extension is that of a video
     bool is_vid_ext = std::find(video_extensions.begin(), video_extensions.end(), extension) != video_extensions.end();
+    // Throw error if extension is neither
     glog->Check(is_img_ext || is_vid_ext, "Input file extension is not supported\n");
     return is_img_ext;
 }

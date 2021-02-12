@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.17)
 
-# Include Hunter dependency management
 include("cmake/HunterGate.cmake")
 HunterGate(
         URL "https://github.com/cpp-pm/hunter/archive/v0.23.291.tar.gz"
