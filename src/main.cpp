@@ -60,11 +60,7 @@ int main(int argc, char **argv) {
         // Blend cubic interpolation
         if (cubic_weight != 0) {
             glog.Check(cubic_weight >= 0 && cubic_weight <= 100, "Weight can only be between 0 and 100.");
-            cv::Mat cubic_frame;
-            cv::resize(input_frame, cubic_frame, cv::Size(), 4.0, 4.0, cv::INTER_CUBIC);
-            double alpha = static_cast<double>(cubic_weight) / 100;
-            double beta = (1.0 - alpha);
-            cv::addWeighted(cubic_frame, alpha, output_frame, beta, 0.0, output_frame);
+            output_frame = blend_bicubic(input_frame, output_frame, scale, cubic_weight);
         }
 
         cv::imwrite(output_path.string(), output_frame);
@@ -104,11 +100,7 @@ int main(int argc, char **argv) {
             // Blend cubic interpolation
             if (cubic_weight != 0) {
                 glog.Check(cubic_weight >= 0 && cubic_weight <= 100, "Weight can only be between 0 and 100.");
-                cv::Mat cubic_frame;
-                cv::resize(input_frame, cubic_frame, cv::Size(), 4.0, 4.0, cv::INTER_CUBIC);
-                double alpha = static_cast<double>(cubic_weight) / 100;
-                double beta = (1.0 - alpha);
-                cv::addWeighted(cubic_frame, alpha, output_frame, beta, 0.0, output_frame);
+                output_frame = blend_bicubic(input_frame, output_frame, scale, cubic_weight);
             }
 
             // Write frame to video

@@ -3,6 +3,7 @@
 //
 
 #include "utils.h"
+#include <opencv2/imgproc.hpp>
 #include <algorithm>
 #include <cctype>
 #include <array>
@@ -24,4 +25,13 @@ bool check_input_extensions(std::string extension, Glog *glog) {
     // Throw error if extension is neither
     glog->Check(is_img_ext || is_vid_ext, "Input file extension is not supported\n");
     return is_img_ext;
+}
+
+cv::Mat blend_bicubic(const cv::Mat &input, const cv::Mat &to_blend, size_t scale, size_t weight) {
+    cv::Mat cubic_frame, output;
+    cv::resize(input, cubic_frame, cv::Size(), static_cast<float>(scale), static_cast<float>(scale), cv::INTER_CUBIC);
+    double alpha = static_cast<double>(weight) / 100;
+    double beta = (1.0 - alpha);
+    cv::addWeighted(cubic_frame, alpha, to_blend, beta, 0.0, output);
+    return output;
 }
