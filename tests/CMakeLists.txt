@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.17)
 
-hunter_add_package(GTest)
-find_package(GTest CONFIG REQUIRED)
+if (HUNTER_ENABLE)
+    hunter_add_package(GTest)
+    find_package(GTest CONFIG REQUIRED)
+endif (HUNTER_ENABLE)
 
 # Remove main.cpp to not have two main() functions
 list(REMOVE_AT SOURCES 0)

@@ -1,20 +1,24 @@
 cmake_minimum_required(VERSION 3.17)
 
-include("cmake/HunterGate.cmake")
-HunterGate(
-        URL "https://github.com/cpp-pm/hunter/archive/v0.23.291.tar.gz"
-        SHA1 "4f57243b24a02b9c7ec5ea02c09d5c77c6a97cba"
-)
+option(BUILD_TESTS "Build the tests" OFF)
+option(HUNTER_ENABLE "Whether to use the hunter dependency system" ON)
+
+if (HUNTER_ENABLE)
+    include("cmake/HunterGate.cmake")
+    HunterGate(
+            URL "https://github.com/cpp-pm/hunter/archive/v0.23.291.tar.gz"
+            SHA1 "4f57243b24a02b9c7ec5ea02c09d5c77c6a97cba"
+    )
+endif (HUNTER_ENABLE)
 
 project(SuperResolution)
 
-# Whether to build tests
-option(BUILD_TESTS "Build the tests" OFF)
-
-# Use Hunter to download and build most dependencies (except Torch)
-hunter_add_package(OpenCV)
-hunter_add_package(cxxopts)
-hunter_add_package(glog)
+if (HUNTER_ENABLE)
+    # Use Hunter to download and build most dependencies (except Torch)
+    hunter_add_package(OpenCV)
+    hunter_add_package(cxxopts)
+    hunter_add_package(glog)
+endif (HUNTER_ENABLE)
 
 # Find required dependencies
 find_package(OpenCV REQUIRED)
