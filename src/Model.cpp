@@ -41,17 +41,16 @@ std::vector<at::Tensor> Model::run(const std::vector<at::Tensor> &input) {
     // Create and reserve the output vector of tensors
     std::vector<at::Tensor> output;
     output.reserve(input.size());
-    // Get the shape of the first tensor
-    auto initial_sizes = input[0].sizes();
     for (uint64_t i = 0; i < input.size(); i += batch_size) {
         std::vector<at::Tensor> tmp_vector;
 
         // Check if the size of the current batch of tensor we are working on are all the same and equal to the initial
         // size. If it is, then run the batch in parallel.
         bool same_size = true;
+        auto first_sizes = input[i].sizes();
         for (auto j = i; j < std::min(i + batch_size, static_cast<uint64_t>(input.size())); j++) {
             auto current_sizes = input[j].sizes();
-            if (!std::equal(current_sizes.begin(), current_sizes.end(), initial_sizes.begin()))
+            if (!std::equal(current_sizes.begin(), current_sizes.end(), first_sizes.begin()))
                 same_size = false;
             tmp_vector.push_back(input[j]);
         }
