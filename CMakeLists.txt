@@ -47,6 +47,7 @@ target_include_directories(SuperResolution PUBLIC include)
 target_link_libraries(SuperResolution ${TO_LINK})
 # Copy model to source directory
 configure_file(${CMAKE_SOURCE_DIR}/models/G_4x.pth ${CMAKE_BINARY_DIR}/G_4x.pth COPYONLY)
+configure_file(${CMAKE_SOURCE_DIR}/models/A_4x.pth ${CMAKE_BINARY_DIR}/A_4x.pth COPYONLY)
 
 # To suppress visibility warnings on apple systems
 if (APPLE)
